@@ -40,20 +40,17 @@ function setup() {
 	
 	openSet.push(start);
 	
-	// frameRate(10);
+	frameRate(20);
 }
 
 function draw() {
   // put drawing code here
 	background(51);
-	// snake.update();
-	// snake.death();
-	// if (snake.eat(food)) {
-		// food = setFoodLocation();
-	// }
-	
+	restart();
+
+	// calculate the best path
 	let current;
-	if (openSet.length > 0) {
+	while (openSet.length > 0) {
 		// find the item in the closed set with the lowest f
 		let lowest = 0;
 		for (let i=0; i<openSet.length; i++)
@@ -72,6 +69,7 @@ function draw() {
 				path.push(temp.previous);
 				temp = temp.previous;
 			}
+			break;
 		}
 		
 		// move current from the open set to the closed set
@@ -83,7 +81,7 @@ function draw() {
 			if (!closedSet.includes(neighbor)) {
 				let tentative_g = current.g + 1;
 				// if this is a new node, add it
-				if (!openSet.includes(neighbor))
+				if (!openSet.includes(neighbor) && !neighbor.wall)
 					openSet.push(neighbor)
 				// if this is worse than a previously checked path
 				else if (tentative_g >= neighbor.g) 
@@ -91,40 +89,41 @@ function draw() {
 				
 				// this is the best path so far
 				neighbor.previous = current;
-				neighbor.h = heuristic(neighbor, current.previous, end);
 				neighbor.g = tentative_g;
+				neighbor.h = heuristic(neighbor, current.previous, end);
 				neighbor.f = neighbor.g + neighbor.h;
 			}
 		}
-		
-		
-		
-	} else {
-		
-	}
-	
+	}	
 	// draw the grid
-	for (let i=0; i < rows; i++)
-		for (let j=0; j<cols; j++)
-			grid[i][j].show();
+	// for (let i=0; i < rows; i++)
+		// for (let j=0; j<cols; j++)
+			// grid[i][j].show();
 	
-	for (let i=0; i<closedSet.length; i++)
-		closedSet[i].show(color(255, 0, 0));
+	// for (let i=0; i<closedSet.length; i++)
+		// closedSet[i].show(color(255, 0, 0));
 	
-	for (let i=0; i<openSet.length; i++)
-		openSet[i].show(color(0, 255, 0));
+	// for (let i=0; i<openSet.length; i++)
+		// openSet[i].show(color(0, 255, 0));
 	
-	for (let i=0; i<path.length; i++)
-		path[i].show(color(0, 0, 255));
+	// for (let i=0; i<path.length; i++)
+		// path[i].show(color(0, 0, 255));
 	
+	// move in the direction of the best path
+	snake.moveTo(path.at(-2));
+	snake.update();
+	snake.death();
+	if (snake.eat(food)) {
+		food = setFoodLocation();
+	}
 	snake.show();
 	
 	// food.show()
 	fill(255, 0, 100);
 	rect(food.x * resolution, food.y * resolution, resolution, resolution);
 	
-	if ( current === end)
-		noLoop();
+	// if ( current === end)
+		// noLoop();
 	
 	
 	
@@ -133,9 +132,26 @@ function draw() {
 }
 
 function heuristic(neighbor, previous, end) {
+	// taxicab distance
 	let d = abs(neighbor.x - end.x) + abs(neighbor.y - end.y);
-	let turn = (previous && neighbor.x !== previous.x && neighbor.y !== previous.y)
-	return turn ? d * 1.1 : d;
+	// do i have to turn later on
+	let turn = (previous && neighbor.x !== previous.x && neighbor.y !== previous.y) ? 1.1 : 1;
+	// do i have to turn right now
+	let turnNow = (snake.previous && neighbor.g === 1 && neighbor.x !== snake.previous.x && neighbor.y !== snake.previous.y) ? 1.1 : 1;
+	return d * turn * turnNow;
+}
+
+function restart() {
+	for (let i=0; i<rows; i++)
+		for (let j=0; j<cols; j++)
+			grid[i][j].restart();
+	
+	start = grid[snake.x][snake.y];
+	end = grid[food.x][food.y];
+	
+	openSet = [];
+	openSet.push(start);
+	closedSet = [];
 }
 
 function keyPressed() {

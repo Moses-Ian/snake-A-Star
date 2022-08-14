@@ -5,15 +5,24 @@ function Snake() {
 	this.yspeed = 0;
 	this.length = 1;
 	this.tail = [createVector(this.x, this.y)];
+	this.previous = {};
 	
 	this.dir = (x, y) => {
 		this.xspeed = x;
 		this.yspeed = y;
 	}
 	
+	this.moveTo = spot => {
+		this.xspeed = spot.x - this.x;
+		this.yspeed = spot.y - this.y;
+	}
+	
 	this.update = () => {
 		for (let i = 0; i < this.tail.length-1; i++)
 			this.tail[i] = this.tail[i+1].copy();
+		
+		this.previous.x = this.x;
+		this.previous.y = this.y;
 		this.x += this.xspeed;
 		this.y += this.yspeed;
 		
