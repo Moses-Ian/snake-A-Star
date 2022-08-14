@@ -6,9 +6,10 @@ function Snake() {
 	this.length = 1;
 	this.tail = [createVector(this.x, this.y)];
 	this.previous = {x: 0, y: 0};
+	this.loopCounter = 0;
 	// debug
-	this.length = 50;
-	this.tail = new Array(this.length).fill(createVector(this.x, this.y));
+	// this.length = 50;
+	// this.tail = new Array(this.length).fill(createVector(this.x, this.y));
 	
 	this.dir = (x, y) => {
 		this.xspeed = x;
@@ -17,8 +18,7 @@ function Snake() {
 	
 	this.moveTo = spot => {
 		try {
-			this.xspeed = spot.x - this.x;
-			this.yspeed = spot.y - this.y;
+			this.dir(spot.x - this.x, spot.y - this.y);
 		} catch (err) {
 			console.error(err);
 			console.log(spot);
@@ -26,7 +26,53 @@ function Snake() {
 		}
 	}
 	
+	this.stall = () => {
+		console.log('stall!');
+		restart();
+		
+		let nextSpot;
+		let oldxspeed = this.xspeed;
+		let oldyspeed = this.yspeed;
+		// see if we can turn right
+		try {
+			this.dir(-this.yspeed, this.xspeed);
+			nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
+			if (nextSpot && !nextSpot.wall) {
+				// console.log('I think this is ok');
+				// console.log(nextSpot);
+				return;
+			}
+		} catch (err) { }
+		
+		// see if we can turn left
+		try {
+			this.dir(-this.xspeed, -this.yspeed);
+			nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
+			if (nextSpot && !nextSpot.wall) {
+				// console.log('I think this is ok');
+				// console.log(nextSpot);
+				return;
+			} 
+		} catch (err) { }
+		
+		// see if we can go straight
+		try {
+			this.dir(oldxspeed, oldyspeed);
+			nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
+			if (nextSpot && !nextSpot.wall) {
+				// console.log('I think this is ok');
+				// console.log(nextSpot);
+				return;
+			}
+		} catch (err) { }
+		
+		// if we truly have nowhere to go, we're dead
+		noLoop();
+	}
+
 	this.update = () => {
+		this.preventLoop();		
+		
 		for (let i = 0; i < this.tail.length-1; i++)
 			this.tail[i] = this.tail[i+1].copy();
 		
@@ -48,6 +94,7 @@ function Snake() {
 	this.eat = food => {
 		if (this.x === food.x && this.y === food.y) {
 			this.length++;
+			this.loopCounter = 0;
 			return true;
 			
 		}
@@ -57,9 +104,48 @@ function Snake() {
 	this.death = () => {
 		for (let i=0; i < this.tail.length-1; i++) {
 			if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
-				this.length = 1;
-				this.tail = [createVector(this.x, this.y)];
+				// this.length = 1;
+				// this.tail = [createVector(this.x, this.y)];
+				console.log('death');
+				noLoop();
 			}
+		}
+	}
+	
+	this.preventLoop = () => {
+		this.loopCounter++;
+		this.loopCounter = this.loopCounter % 100;
+		if (this.loopCounter === 0) {
+			// save the old speed
+			let oldxspeed = this.xspeed;
+			let oldyspeed = this.yspeed;
+			
+			let nextSpot;
+			
+			try {
+				// see if we can turn right
+				this.dir(-this.yspeed, this.xspeed);
+				nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
+				if (nextSpot && !nextSpot.wall) {
+					// console.log('I think this is ok');
+					// console.log(nextSpot);
+					return;
+				}
+			} catch (err) { }
+			
+			try {
+				// see if we can turn left
+				this.dir(-this.xspeed, -this.yspeed);
+				nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
+				if (nextSpot && !nextSpot.wall) {
+					// console.log('I think this is ok');
+					// console.log(nextSpot);
+					return;
+				}
+			} catch (err) { }
+			
+			// we can only keep going straight;
+			this.dir(oldxspeed, oldyspeed);
 		}
 	}
 	

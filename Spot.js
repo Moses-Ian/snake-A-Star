@@ -25,7 +25,7 @@ function Spot(x, y) {
 	}
 	
 	this.show = (color=51) => {
-		if (this.wall) color = 200;
+		// if (this.wall) color = 200;
 		fill(color);
 		rect(this.x * resolution, this.y * resolution, resolution, resolution);
 	}
