@@ -19,7 +19,6 @@ let looping = true;
 const SPACE = 32;
 
 function setup() {
-  // put setup code here
 	let canvas = createCanvas(500, 500);
 	canvas.parent('sketch-container');
 	
@@ -41,37 +40,30 @@ function setup() {
 	snake = new Snake();
 	food = setFoodLocation();
 	
-	
 	frameRate(20);
 }
 
 function draw() {
-	background(51);
-  // put drawing code here
-	restart();
-
 	// find a path to the food
 	let path = findPath({
 		end: foodSpot()
 	})
 	
+	// there's a path to the apple
+	// make sure there's a path from the food to the tail
 	let pathFoodTail = [];
 	if (path.length !== 0) {
-		// there's a path to the apple
-		// make sure there's a path from the food to the tail
 		pathFoodTail = findPath({
 			start: foodSpot(),
 			end: tailSpot(),
 			walls: path,
-			allow: [tailSpot()]
 		});
 
+		// maybe there's a path from the food to the tail, then from the head to the food?
 		if (pathFoodTail.length === 0) {
-			// maybe there's a path from the food to the tail, then from the head to the food?
 			pathFoodTail = findPath({
 				start: foodSpot(),
 				end: tailSpot(),
-				allow: [tailSpot()]
 			});
 			if (pathFoodTail.length === 0)
 				path = [];
@@ -80,44 +72,24 @@ function draw() {
 					start: headSpot(),
 					end: foodSpot(),
 					walls: pathFoodTail,
-					allow: [foodSpot()],
-					// debug: true
 				});
-				if (path.length !== 0) {
-					console.log('here');
-					for (let i=0; i<path.length; i++)
-						path[i].show(color(0, 0, 255));
-					
-					for (let i=0; i<pathFoodTail.length; i++)
-						pathFoodTail[i].show(color(0, 255, 255));
-					// noLoop();
-					// looping = false;
-				}
+				// if (path.length !== 0) { }
 			}
-				
 		}
-	
 	}
 	
+	// if we can't find the food, try to find the tail
 	if (path.length === 0 || pathFoodTail.length === 0) {
-		// if we can't find the food, try to find the tail
 		restart();
 		path = findPath({
 			end: tailSpot(),
-			allow: [tailSpot()]
 		});
-		// console.log(path,);
-		if (path.length <= TOO_CLOSE) {
-			// console.log(path);
+		if (path.length <= TOO_CLOSE)
 			path = snake.stall();
-			// console.log(path);
-		}
-		snake.moveTo(path.at(-2));
-	} else {
-		// move in the direction of the best path
-		snake.moveTo(path.at(-2));
 	}
 		
+	// move in the direction of the best path
+	snake.moveTo(path.at(-2));
 	snake.update();
 	snake.death();
 	if (snake.eat(food)) {
@@ -125,11 +97,12 @@ function draw() {
 	}
 
 	// draw
+	background(51);
+
 	// draw the grid
 	// for (let i=0; i < rows; i++)
 		// for (let j=0; j<cols; j++)
 			// grid[i][j].show();
-	
 	
 	// for (let i=0; i<closedSet.length; i++)
 		// closedSet[i].show(color(255, 0, 0));
@@ -137,23 +110,18 @@ function draw() {
 	// for (let i=0; i<openSet.length; i++)
 		// openSet[i].show(color(0, 255, 0));
 
+	// for (let i=0; i<path.length; i++)
+		// path[i].show(color(0, 0, 255));
+	
+	// for (let i=0; i<pathFoodTail.length; i++)
+		// pathFoodTail[i].show(color(0, 255, 255));
+
 	snake.show();
 	grid[snake.tail[0].x][snake.tail[0].y].show(color(255, 0, 255));
 	
 	// food.show()
 	fill(255, 0, 100);
 	rect(food.x * resolution, food.y * resolution, resolution, resolution);
-	
-	// if ( current === end)
-		// noLoop();
-	
-	// for (let i=0; i<snake.tail.length; i++)
-		// for (let j=0; j<pathFoodTail.length; j++)
-			// if (snake.tail[i].x === pathFoodTail[j].x && snake.tail[i].y === pathFoodTail[j])
-				// grid[snake.tail[i].x][snake.tail[i].y].show(color(255, 0, 0));
-	
-	
-	
 }
 
 function findPath({start=headSpot(), end, walls=[], allow=[], debug=false}) {
@@ -161,10 +129,9 @@ function findPath({start=headSpot(), end, walls=[], allow=[], debug=false}) {
 	// calculate the best path
 	let current;
 	let path = [];
-	// start = grid[snake.x][snake.y];
-	// let end = grid[food.x][food.y];
 	for (let i=0; i<walls.length; i++)
 		gridSpot(walls[i]).wall = true;
+	allow.push(end);
 	for (let i=0; i<allow.length; i++)
 		gridSpot(allow[i]).wall = false;
 	
@@ -242,30 +209,13 @@ function restart() {
 }
 
 function keyPressed() {
-	
-	switch (keyCode) {
-		case SPACE:
-			if (looping) 
-				noLoop();
-			else
-				loop();
-			looping = !looping;
-			break;
-		case UP_ARROW:
-			snake.dir(0, -1);
-			break;
-		case DOWN_ARROW:
-			snake.dir(0, 1);
-			break;
-		case RIGHT_ARROW:
-			snake.dir(1, 0);
-			break;
-		case LEFT_ARROW:
-			snake.dir(-1, 0);
-			break;
-		default:
-			break;
-	}
+	if (keyCode !== SPACE)
+		return;
+	if (looping) 
+		noLoop();
+	else
+		loop();
+	looping = !looping;
 }
 
 const setFoodLocation = () => {

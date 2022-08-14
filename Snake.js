@@ -27,94 +27,28 @@ function Snake() {
 	}
 	
 	this.stall = () => {
-		console.log('stall!');
 		restart();
 		
 		let nextSpot;
-		let oldxspeed = this.xspeed;
-		let oldyspeed = this.yspeed;
-		// see if we can go straight
 		let bestDirSoFar = {
 			x: 0,
 			y: 0,
 			points: 0
 		};
-		try {
-			this.dir(oldxspeed, oldyspeed);
-			nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
-			if (!nextSpot.wall) {
-				let dir = {
-					x: this.xspeed, 
-					y: this.yspeed,
-					points: 1
-				};
-				let path = findPath({
-					start: nextSpot,
-					end: tailSpot(),
-					walls: [nextSpot, headSpot()],
-					allow: [tailSpot()]
-				});
-				if (path.length !== 0) {
-					dir.points = 2;
-					if (path.length > TOO_CLOSE)
-						dir.points = 3;
-				}
-				if (dir.points > bestDirSoFar.points)
-					bestDirSoFar = dir;
-			}
-		} catch (err) { }
+		// see if we can go straight
+		let dir = this.checkDir(this.xspeed, this.yspeed);
+		if (dir.points > bestDirSoFar.points)
+			bestDirSoFar = dir;
 		
 		// see if we can turn right
-		try {
-			this.dir(-this.yspeed, this.xspeed);
-			nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
-			if (!nextSpot.wall) {
-				let dir = {
-					x: this.xspeed, 
-					y: this.yspeed,
-					points: 1
-				};
-				let path = findPath({
-					start: nextSpot,
-					end: tailSpot(),
-					walls: [nextSpot, headSpot()],
-					allow: [tailSpot()]
-				});
-				if (path.length !== 0) {
-					dir.points = 2;
-					if (path.length > TOO_CLOSE)
-						dir.points = 3;
-				}
-				if (dir.points > bestDirSoFar.points)
-					bestDirSoFar = dir;
-			}
-		} catch (err) { }
+		dir = this.checkDir(-this.yspeed, this.xspeed);
+		if (dir.points > bestDirSoFar.points)
+			bestDirSoFar = dir;
 		
 		// see if we can turn left
-		try {
-			this.dir(-this.xspeed, -this.yspeed);
-			nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
-			if (!nextSpot.wall) {
-				let dir = {
-					x: this.xspeed, 
-					y: this.yspeed,
-					points: 1
-				};
-				let path = findPath({
-					start: nextSpot,
-					end: tailSpot(),
-					walls: [nextSpot, headSpot()],
-					allow: [tailSpot()]
-				});
-				if (path.length !== 0) {
-					dir.points = 2;
-					if (path.length > TOO_CLOSE)
-						dir.points = 3;
-				}
-				if (dir.points > bestDirSoFar.points)
-					bestDirSoFar = dir;
-			}
-		} catch (err) { }
+		dir = this.checkDir(this.yspeed, -this.xspeed);
+		if (dir.points > bestDirSoFar.points)
+			bestDirSoFar = dir;
 		
 		if (bestDirSoFar.points === 0)
 			noLoop();
@@ -124,10 +58,33 @@ function Snake() {
 		// if we truly have nowhere to go, we're dead
 		noLoop();
 	}
+	
+	this.checkDir = (xspeed, yspeed) => {
+		let dir = {
+			x: xspeed,
+			y: yspeed,
+			points: 0
+		};
+		try {
+			nextSpot = grid[this.x + dir.x][this.y + dir.y];
+			if (!nextSpot.wall) {
+				dir.points = 1;
+				let path = findPath({
+					start: nextSpot,
+					end: tailSpot(),
+					walls: [nextSpot, headSpot()],
+				});
+				if (path.length !== 0) {
+					dir.points = 2;
+					if (path.length > TOO_CLOSE)
+						dir.points = 3;
+				}
+			}
+		} catch (err) { }
+		return dir;
+	}
 
 	this.update = () => {
-		// this.preventLoop();		
-		
 		for (let i = 0; i < this.tail.length-1; i++)
 			this.tail[i] = this.tail[i+1].copy();
 		
@@ -140,10 +97,6 @@ function Snake() {
 		this.y = constrain(this.y, 0, rows-1);
 		
 		this.tail[this.length-1] = createVector(this.x, this.y);
-
-		// if (this.length !== this.tail.length)
-			// this.tail.push(createVector(this.x, this.y));
-		
 	}
 	
 	this.eat = food => {
@@ -151,7 +104,6 @@ function Snake() {
 			this.length++;
 			this.loopCounter = 0;
 			return true;
-			
 		}
 		return false;
 	}
@@ -159,55 +111,16 @@ function Snake() {
 	this.death = () => {
 		for (let i=0; i < this.tail.length-1; i++) {
 			if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
-				// this.length = 1;
-				// this.tail = [createVector(this.x, this.y)];
 				console.log('death');
 				noLoop();
 			}
 		}
 	}
 	
-	this.preventLoop = () => {
-		this.loopCounter++;
-		this.loopCounter = this.loopCounter % 100;
-		if (this.loopCounter === 0) {
-			// save the old speed
-			let oldxspeed = this.xspeed;
-			let oldyspeed = this.yspeed;
-			
-			let nextSpot;
-			
-			try {
-				// see if we can turn right
-				this.dir(-this.yspeed, this.xspeed);
-				nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
-				if (nextSpot && !nextSpot.wall) {
-					// console.log('I think this is ok');
-					// console.log(nextSpot);
-					return;
-				}
-			} catch (err) { }
-			
-			try {
-				// see if we can turn left
-				this.dir(-this.xspeed, -this.yspeed);
-				nextSpot = grid[this.x + this.xspeed][this.y + this.yspeed];
-				if (nextSpot && !nextSpot.wall) {
-					// console.log('I think this is ok');
-					// console.log(nextSpot);
-					return;
-				}
-			} catch (err) { }
-			
-			// we can only keep going straight;
-			this.dir(oldxspeed, oldyspeed);
-		}
-	}
-	
 	this.show = () => {
 		fill(255);
-		for (let i=0; i < this.tail.length; i++)
+		for (let i=1; i < this.tail.length; i++)
 			rect(this.tail[i].x * resolution, this.tail[i].y * resolution, resolution, resolution);
-		// rect(this.x * resolution, this.y * resolution, resolution, resolution);
+		grid[snake.tail[0].x][snake.tail[0].y].show(color(255, 0, 255));
 	}
 }
