@@ -21,6 +21,7 @@ function Spot(x, y) {
 		this.g = 0;
 		this.h = 0;
 		this.previous = undefined;
+		this.wall = false;
 	}
 	
 	this.show = (color=51) => {

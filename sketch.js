@@ -7,9 +7,6 @@ let rows, cols;
 var grid;
 let openSet = [];
 let closedSet = [];
-let start;
-let end;
-let path = [];
 
 function setup() {
   // put setup code here
@@ -34,11 +31,6 @@ function setup() {
 	snake = new Snake();
 	food = setFoodLocation();
 	
-	// should be head and food
-	start = grid[snake.x][snake.y];
-	end = grid[food.x][food.y];
-	
-	openSet.push(start);
 	
 	frameRate(20);
 }
@@ -46,9 +38,68 @@ function setup() {
 function draw() {
   // put drawing code here
 	restart();
+	setObstacles();
 
+	let path = findPath(grid[food.x][food.y])
+	
+	if (path.length === 0) {
+		// if we can't find the food, try to find the tail
+		restart();
+		setObstacles();
+		grid[snake.tail[0].x][snake.tail[0].y].wall = false;
+		grid[snake.tail[1].x][snake.tail[1].y].wall = false;
+		path = findPath(grid[snake.tail[0].x][snake.tail[0].y]);
+		if (path.length === 0) console.log('no path');
+	}
+
+	for (let i=0; i<closedSet.length; i++)
+		closedSet[i].show(color(255, 0, 0));
+	
+	for (let i=0; i<openSet.length; i++)
+		openSet[i].show(color(0, 255, 0));
+
+	// move in the direction of the best path
+	snake.moveTo(path.at(-2));
+	snake.update();
+	snake.death();
+	if (snake.eat(food)) {
+		food = setFoodLocation();
+	}
+
+	// draw
+	background(51);
+	// draw the grid
+	// for (let i=0; i < rows; i++)
+		// for (let j=0; j<cols; j++)
+			// grid[i][j].show();
+	
+	
+	for (let i=0; i<path.length; i++)
+		path[i].show(color(0, 0, 255));
+	
+	snake.show();
+	
+	// food.show()
+	fill(255, 0, 100);
+	rect(food.x * resolution, food.y * resolution, resolution, resolution);
+	
+	// if ( current === end)
+		// noLoop();
+	
+	
+	
+	
+	
+}
+
+function findPath(end) {
 	// calculate the best path
 	let current;
+	let path = [];
+	start = grid[snake.x][snake.y];
+	
+	openSet.push(start);
+
 	while (openSet.length > 0) {
 		// find the item in the closed set with the lowest f
 		let lowest = 0;
@@ -60,8 +111,7 @@ function draw() {
 		
 		// if the best is the end, we're done
 		if (current === end) {
-			console.log("done");
-			path = [];
+			// console.log("done");
 			path.push(current);
 			let temp = current;
 			while (temp.previous) {
@@ -94,44 +144,8 @@ function draw() {
 			}
 		}
 	}	
-
-	// move in the direction of the best path
-	snake.moveTo(path.at(-2));
-	snake.update();
-	snake.death();
-	if (snake.eat(food)) {
-		food = setFoodLocation();
-	}
-
-	// draw
-	background(51);
-	// draw the grid
-	// for (let i=0; i < rows; i++)
-		// for (let j=0; j<cols; j++)
-			// grid[i][j].show();
 	
-	// for (let i=0; i<closedSet.length; i++)
-		// closedSet[i].show(color(255, 0, 0));
-	
-	// for (let i=0; i<openSet.length; i++)
-		// openSet[i].show(color(0, 255, 0));
-	
-	// for (let i=0; i<path.length; i++)
-		// path[i].show(color(0, 0, 255));
-	
-	snake.show();
-	
-	// food.show()
-	fill(255, 0, 100);
-	rect(food.x * resolution, food.y * resolution, resolution, resolution);
-	
-	// if ( current === end)
-		// noLoop();
-	
-	
-	
-	
-	
+	return path;
 }
 
 function heuristic(neighbor, previous, end) {
@@ -155,6 +169,13 @@ function restart() {
 	openSet = [];
 	openSet.push(start);
 	closedSet = [];
+
+	path = [];
+}
+
+function setObstacles() {
+	for (let i=0; i<snake.tail.length-1; i++)
+		grid[snake.tail[i].x][snake.tail[i].y].wall = true;
 }
 
 function keyPressed() {

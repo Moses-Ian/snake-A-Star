@@ -6,6 +6,9 @@ function Snake() {
 	this.length = 1;
 	this.tail = [createVector(this.x, this.y)];
 	this.previous = {x: 0, y: 0};
+	// debug
+	this.length = 50;
+	this.tail = new Array(this.length).fill(createVector(this.x, this.y));
 	
 	this.dir = (x, y) => {
 		this.xspeed = x;
