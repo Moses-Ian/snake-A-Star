@@ -5,7 +5,7 @@ function Snake() {
 	this.yspeed = 0;
 	this.length = 1;
 	this.tail = [createVector(this.x, this.y)];
-	this.previous = {};
+	this.previous = {x: 0, y: 0};
 	
 	this.dir = (x, y) => {
 		this.xspeed = x;
@@ -13,8 +13,14 @@ function Snake() {
 	}
 	
 	this.moveTo = spot => {
-		this.xspeed = spot.x - this.x;
-		this.yspeed = spot.y - this.y;
+		try {
+			this.xspeed = spot.x - this.x;
+			this.yspeed = spot.y - this.y;
+		} catch (err) {
+			console.error(err);
+			console.log(spot);
+			noLoop();
+		}
 	}
 	
 	this.update = () => {

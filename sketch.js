@@ -45,7 +45,6 @@ function setup() {
 
 function draw() {
   // put drawing code here
-	background(51);
 	restart();
 
 	// calculate the best path
@@ -95,6 +94,17 @@ function draw() {
 			}
 		}
 	}	
+
+	// move in the direction of the best path
+	snake.moveTo(path.at(-2));
+	snake.update();
+	snake.death();
+	if (snake.eat(food)) {
+		food = setFoodLocation();
+	}
+
+	// draw
+	background(51);
 	// draw the grid
 	// for (let i=0; i < rows; i++)
 		// for (let j=0; j<cols; j++)
@@ -109,13 +119,6 @@ function draw() {
 	// for (let i=0; i<path.length; i++)
 		// path[i].show(color(0, 0, 255));
 	
-	// move in the direction of the best path
-	snake.moveTo(path.at(-2));
-	snake.update();
-	snake.death();
-	if (snake.eat(food)) {
-		food = setFoodLocation();
-	}
 	snake.show();
 	
 	// food.show()
@@ -137,7 +140,7 @@ function heuristic(neighbor, previous, end) {
 	// do i have to turn later on
 	let turn = (previous && neighbor.x !== previous.x && neighbor.y !== previous.y) ? 1.1 : 1;
 	// do i have to turn right now
-	let turnNow = (snake.previous && neighbor.g === 1 && neighbor.x !== snake.previous.x && neighbor.y !== snake.previous.y) ? 1.1 : 1;
+	let turnNow = (neighbor.g === 1 && neighbor.x !== snake.previous.x && neighbor.y !== snake.previous.y) ? 1.1 : 1;
 	return d * turn * turnNow;
 }
 
@@ -174,4 +177,18 @@ function keyPressed() {
 	}
 }
 
-const setFoodLocation = () => createVector(floor(random(cols)), floor(random(rows)));
+const setFoodLocation = () => {
+	let attempt;
+	let collide;
+	do {
+		attempt = createVector(floor(random(cols)), floor(random(rows)));
+		collide = false;
+		for (let i=0; i<snake.tail.length; i++)
+			if (snake.tail[i].x === attempt.x && snake.tail[i].y === attempt.y) {
+				collide = true;
+				break;
+			}
+	} while (collide);
+	return attempt;
+}
+
