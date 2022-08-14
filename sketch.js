@@ -1,5 +1,5 @@
 let snake;
-let food;
+var food;
 
 var resolution = 20;
 let rows, cols;
@@ -7,6 +7,13 @@ let rows, cols;
 var grid;
 let openSet = [];
 let closedSet = [];
+
+var foodSpot = () => grid[food.x][food.y];
+var headSpot = () => grid[snake.x][snake.y];
+var tailSpot = () => grid[snake.tail[0].x][snake.tail[0].y];
+var gridSpot = obj => grid[obj.x][obj.y];
+
+var TOO_CLOSE = 5;
 
 function setup() {
   // put setup code here
@@ -40,13 +47,20 @@ function draw() {
 	restart();
 
 	// find a path to the food
-	let path = findPath(grid[food.x][food.y])
+	let path = findPath({
+		end: foodSpot()
+	})
 	
 	let pathFoodTail = [];
 	if (path.length !== 0) {
 		// there's a path to the apple
 		// make sure there's a path from the food to the tail
-		pathFoodTail = findPathFromFood(path);
+		pathFoodTail = findPath({
+			start: foodSpot(),
+			end: tailSpot(),
+			walls: path,
+			allow: [tailSpot()]
+		});
 
 		if (pathFoodTail.length === 0) {
 			// console.log('now');
@@ -58,15 +72,17 @@ function draw() {
 	if (path.length === 0 || pathFoodTail.length === 0) {
 		// if we can't find the food, try to find the tail
 		restart();
-		grid[snake.tail[0].x][snake.tail[0].y].wall = false;
-		// if (snake.tail.length >= 2)
-			// grid[snake.tail[1].x][snake.tail[1].y].wall = false;
-		path = findPath(grid[snake.tail[0].x][snake.tail[0].y]);
+		path = findPath({
+			end: tailSpot(),
+			allow: [tailSpot()]
+		});
 		// console.log(path,);
-		if (path.length <= 5) 
-			snake.stall();
-		else
-			snake.moveTo(path.at(-2));
+		if (path.length <= TOO_CLOSE) {
+			// console.log(path);
+			path = snake.stall();
+			// console.log(path);
+		}
+		snake.moveTo(path.at(-2));
 	} else {
 		// move in the direction of the best path
 		snake.moveTo(path.at(-2));
@@ -117,77 +133,18 @@ function draw() {
 	
 }
 
-function findPath(end) {
-	// calculate the best path
-	let current;
-	let path = [];
-	start = grid[snake.x][snake.y];
-	// let end = grid[food.x][food.y];
-	
-	openSet.push(start);
-
-	while (openSet.length > 0) {
-		// find the item in the closed set with the lowest f
-		let lowest = 0;
-		for (let i=0; i<openSet.length; i++)
-			if (openSet[i].f < openSet[lowest].f)
-				lowest = i;
-		
-		current = openSet[lowest];
-		
-		// if the best is the end, we're done
-		if (current === end) {
-			// console.log("done");
-			path.push(current);
-			let temp = current;
-			while (temp.previous) {
-				path.push(temp.previous);
-				temp = temp.previous;
-			}
-			break;
-		}
-		
-		// move current from the open set to the closed set
-		openSet = [...openSet.slice(0, lowest), ...openSet.slice(lowest+1)];
-		closedSet.push(current);
-		
-		for (let i=0; i<current.neighbors.length; i++) {
-			let neighbor = current.neighbors[i];
-			if (!closedSet.includes(neighbor)) {
-				let tentative_g = current.g + 1;
-				// if this is a new node, add it
-				if (!openSet.includes(neighbor) && !neighbor.wall)
-					openSet.push(neighbor)
-				// if this is worse than a previously checked path
-				else if (tentative_g >= neighbor.g) 
-					continue;
-				
-				// this is the best path so far
-				neighbor.previous = current;
-				neighbor.g = tentative_g;
-				neighbor.h = heuristic(neighbor, current.previous, end);
-				neighbor.f = neighbor.g + neighbor.h;
-			}
-		}
-	}	
-	
-	return path;
-}
-
-function findPathFromFood(pathToFood) {
-	// calculate the best path
+function findPath({start=headSpot(), end, walls=[], allow=[]}) {
 	restart();
+	// calculate the best path
 	let current;
 	let path = [];
-	start = grid[food.x][food.y];
-	end = grid[snake.tail[0].x][snake.tail[0].y];
+	// start = grid[snake.x][snake.y];
+	// let end = grid[food.x][food.y];
+	for (let i=0; i<walls.length; i++)
+		gridSpot(walls[i]).wall = true;
+	for (let i=0; i<allow.length; i++)
+		gridSpot(allow[i]).wall = false;
 	
-	for (let i=0; i<pathToFood.length; i++)
-		grid[pathToFood[i].x][pathToFood[i].y].wall = true;
-	grid[snake.tail[0].x][snake.tail[0].y].wall = false;
-	if (snake.tail.length >= 2)
-		grid[snake.tail[1].x][snake.tail[1].y].wall = false;
-
 	openSet.push(start);
 
 	while (openSet.length > 0) {
