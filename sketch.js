@@ -15,6 +15,9 @@ var gridSpot = obj => grid[obj.x][obj.y];
 
 var TOO_CLOSE = 5;
 
+let looping = true;
+const SPACE = 32;
+
 function setup() {
   // put setup code here
 	let canvas = createCanvas(500, 500);
@@ -43,6 +46,7 @@ function setup() {
 }
 
 function draw() {
+	background(51);
   // put drawing code here
 	restart();
 
@@ -63,8 +67,34 @@ function draw() {
 		});
 
 		if (pathFoodTail.length === 0) {
-			// console.log('now');
-			// noLoop();
+			// maybe there's a path from the food to the tail, then from the head to the food?
+			pathFoodTail = findPath({
+				start: foodSpot(),
+				end: tailSpot(),
+				allow: [tailSpot()]
+			});
+			if (pathFoodTail.length === 0)
+				path = [];
+			else {
+				path = findPath({
+					start: headSpot(),
+					end: foodSpot(),
+					walls: pathFoodTail,
+					allow: [foodSpot()],
+					// debug: true
+				});
+				if (path.length !== 0) {
+					console.log('here');
+					for (let i=0; i<path.length; i++)
+						path[i].show(color(0, 0, 255));
+					
+					for (let i=0; i<pathFoodTail.length; i++)
+						pathFoodTail[i].show(color(0, 255, 255));
+					// noLoop();
+					// looping = false;
+				}
+			}
+				
 		}
 	
 	}
@@ -95,7 +125,6 @@ function draw() {
 	}
 
 	// draw
-	background(51);
 	// draw the grid
 	// for (let i=0; i < rows; i++)
 		// for (let j=0; j<cols; j++)
@@ -108,12 +137,6 @@ function draw() {
 	// for (let i=0; i<openSet.length; i++)
 		// openSet[i].show(color(0, 255, 0));
 
-	// for (let i=0; i<path.length; i++)
-		// path[i].show(color(0, 0, 255));
-	
-	// for (let i=0; i<pathFoodTail.length; i++)
-		// pathFoodTail[i].show(color(0, 255, 255));
-	
 	snake.show();
 	grid[snake.tail[0].x][snake.tail[0].y].show(color(255, 0, 255));
 	
@@ -133,7 +156,7 @@ function draw() {
 	
 }
 
-function findPath({start=headSpot(), end, walls=[], allow=[]}) {
+function findPath({start=headSpot(), end, walls=[], allow=[], debug=false}) {
 	restart();
 	// calculate the best path
 	let current;
@@ -148,6 +171,7 @@ function findPath({start=headSpot(), end, walls=[], allow=[]}) {
 	openSet.push(start);
 
 	while (openSet.length > 0) {
+		if (debug) console.log(openSet);
 		// find the item in the closed set with the lowest f
 		let lowest = 0;
 		for (let i=0; i<openSet.length; i++)
@@ -210,7 +234,7 @@ function restart() {
 		for (let j=0; j<cols; j++)
 			grid[i][j].restart();
 
-	for (let i=0; i<snake.tail.length-1; i++)
+	for (let i=0; i<snake.tail.length; i++)
 		grid[snake.tail[i].x][snake.tail[i].y].wall = true;
 	
 	openSet = [];
@@ -220,6 +244,13 @@ function restart() {
 function keyPressed() {
 	
 	switch (keyCode) {
+		case SPACE:
+			if (looping) 
+				noLoop();
+			else
+				loop();
+			looping = !looping;
+			break;
 		case UP_ARROW:
 			snake.dir(0, -1);
 			break;

@@ -8,7 +8,7 @@ function Snake() {
 	this.previous = {x: 0, y: 0};
 	this.loopCounter = 0;
 	// debug
-	this.length = 75;
+	this.length = 150;
 	this.tail = new Array(this.length).fill(createVector(this.x, this.y));
 	
 	this.dir = (x, y) => {
@@ -54,7 +54,6 @@ function Snake() {
 					walls: [nextSpot, headSpot()],
 					allow: [tailSpot()]
 				});
-				console.log(path);
 				if (path.length !== 0) {
 					dir.points = 2;
 					if (path.length > TOO_CLOSE)
@@ -117,8 +116,6 @@ function Snake() {
 			}
 		} catch (err) { }
 		
-		if (bestDirSoFar.points === 2)
-			console.log(bestDirSoFar);
 		if (bestDirSoFar.points === 0)
 			noLoop();
 		nextSpot = grid[this.x + bestDirSoFar.x][this.y + bestDirSoFar.y];
