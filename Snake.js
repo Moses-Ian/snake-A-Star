@@ -8,8 +8,8 @@ function Snake() {
 	this.previous = {x: 0, y: 0};
 	this.loopCounter = 0;
 	// debug
-	this.length = 150;
-	this.tail = new Array(this.length).fill(createVector(this.x, this.y));
+	// this.length = 150;
+	// this.tail = new Array(this.length).fill(createVector(this.x, this.y));
 	
 	this.dir = (x, y) => {
 		this.xspeed = x;
@@ -17,13 +17,7 @@ function Snake() {
 	}
 	
 	this.moveTo = spot => {
-		try {
-			this.dir(spot.x - this.x, spot.y - this.y);
-		} catch (err) {
-			console.error(err);
-			console.log(spot);
-			noLoop();
-		}
+		this.dir(spot.x - this.x, spot.y - this.y);
 	}
 	
 	this.stall = () => {
@@ -50,13 +44,8 @@ function Snake() {
 		if (dir.points > bestDirSoFar.points)
 			bestDirSoFar = dir;
 		
-		if (bestDirSoFar.points === 0)
-			noLoop();
 		nextSpot = grid[this.x + bestDirSoFar.x][this.y + bestDirSoFar.y];
 		return [nextSpot, nextSpot];
-		
-		// if we truly have nowhere to go, we're dead
-		noLoop();
 	}
 	
 	this.checkDir = (xspeed, yspeed) => {
@@ -75,7 +64,7 @@ function Snake() {
 					walls: [nextSpot, headSpot()],
 				});
 				if (path.length !== 0) {
-					dir.points = 2;
+					dir.points = 2 + path.length * 0.1;
 					if (path.length > TOO_CLOSE)
 						dir.points = 3;
 				}

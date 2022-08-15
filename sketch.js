@@ -40,7 +40,7 @@ function setup() {
 	snake = new Snake();
 	food = setFoodLocation();
 	
-	frameRate(20);
+	// frameRate(20);
 }
 
 function draw() {
