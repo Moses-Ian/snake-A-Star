@@ -19,7 +19,7 @@ let looping = true;
 const SPACE = 32;
 
 function setup() {
-	let canvas = createCanvas(500, 500);
+	let canvas = createCanvas(400, 400);
 	canvas.parent('sketch-container');
 	
 	rows = height / resolution;
@@ -40,7 +40,7 @@ function setup() {
 	snake = new Snake();
 	food = setFoodLocation();
 	
-	// frameRate(20);
+	// frameRate(10);
 }
 
 function draw() {
@@ -117,7 +117,6 @@ function draw() {
 		// pathFoodTail[i].show(color(0, 255, 255));
 
 	snake.show();
-	grid[snake.tail[0].x][snake.tail[0].y].show(color(255, 0, 255));
 	
 	// food.show()
 	fill(255, 0, 100);

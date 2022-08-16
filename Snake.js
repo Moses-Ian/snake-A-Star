@@ -1,10 +1,15 @@
+const UP = 0;
+const RGT = 1;
+const BTM = 2;
+const LFT = 3;
+
 function Snake() {
 	this.x = 0;
 	this.y = 0;
 	this.xspeed = 1;
 	this.yspeed = 0;
 	this.length = 1;
-	this.tail = [createVector(this.x, this.y)];
+	this.tail = [new Body(this.x, this.y)];
 	this.previous = {x: 0, y: 0};
 	this.loopCounter = 0;
 	// debug
@@ -56,6 +61,10 @@ function Snake() {
 		};
 		try {
 			nextSpot = grid[this.x + dir.x][this.y + dir.y];
+			if (nextSpot.x === this.tail[0].x && nextSpot.y === this.tail[0].y) {
+				dir.points = 0.5;
+				return dir;
+			}
 			if (!nextSpot.wall) {
 				dir.points = 1;
 				let path = findPath({
@@ -85,7 +94,7 @@ function Snake() {
 		this.x = constrain(this.x, 0, cols-1);
 		this.y = constrain(this.y, 0, rows-1);
 		
-		this.tail[this.length-1] = createVector(this.x, this.y);
+		this.tail[this.length-1] = new Body(this.x, this.y);
 	}
 	
 	this.eat = food => {
@@ -100,7 +109,7 @@ function Snake() {
 	this.death = () => {
 		for (let i=0; i < this.tail.length-1; i++) {
 			if (this.x === this.tail[i].x && this.y === this.tail[i].y) {
-				console.log('death');
+				console.log(`death: segment ${i}`);
 				noLoop();
 			}
 		}
@@ -108,8 +117,58 @@ function Snake() {
 	
 	this.show = () => {
 		fill(255);
-		for (let i=1; i < this.tail.length; i++)
-			rect(this.tail[i].x * resolution, this.tail[i].y * resolution, resolution, resolution);
-		grid[snake.tail[0].x][snake.tail[0].y].show(color(255, 0, 255));
+		this.tail[0].reset();
+		for (let i=this.tail.length-1; i >= 1; i--) {
+			this.tail[i].setEdge(this.tail[i-1]);
+			this.tail[i].show();
+		}
+		this.tail[0].show(color(255, 0, 255));
+	}
+}
+
+class Body {
+	
+	constructor(x, y, edges) {
+		this.x = x;
+		this.y = y;
+		this.edges = edges || [true, true, true, true];	// up right down left
+	}
+	
+	reset = () => this.edges = [true, true, true, true];
+	
+	setEdge = other => {
+		if (other.x > this.x) {
+			this.edges[RGT] = false;
+			other.edges[LFT] = false;
+		}
+		if (other.x < this.x) {
+			this.edges[LFT] = false;
+			other.edges[RGT] = false;
+		}
+		if (other.y > this.y) {
+			this.edges[BTM] = false;
+			other.edges[UP] = false;
+		}
+		if (other.y < this.y) {
+			this.edges[UP] = false;
+			other.edges[BTM] = false;
+		}
+		if (other.x === this.x && other.y === this.y)
+			other.edges = this.edges.slice(0);
+	}
+	
+	copy = () => new Body(this.x, this.y, this.edges.slice(0));
+	
+	show = color => {
+		let x = this.x * resolution;
+		let y = this.y * resolution;
+		noStroke();
+		if (color) fill(color);
+		rect(x, y, resolution, resolution);
+		stroke(0);
+		if (this.edges[0]) line(x, y, x + resolution, y);
+		if (this.edges[1]) line(x + resolution, y, x + resolution, y + resolution);
+		if (this.edges[2]) line(x + resolution, y + resolution, x, y + resolution);
+		if (this.edges[3]) line(x, y + resolution, x, y);
 	}
 }
