@@ -9,7 +9,7 @@ This project was developed because I saw numerous snake AIs, and I figured I can
 ## Link
 
 You can view the deployed page here:
-https://moses-ian.github.io/snake-a-star/
+https://moses-ian.github.io/snake-A-Star/
 
 ## Usage
 
