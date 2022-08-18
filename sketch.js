@@ -7,6 +7,9 @@ let rows, cols;
 var grid;
 let openSet = [];
 let closedSet = [];
+// these are purely for display
+let pathOpenSet = [];
+let pathClosedSet = [];
 
 var foodSpot = () => grid[food.x][food.y];
 var headSpot = () => grid[snake.x][snake.y];
@@ -17,6 +20,11 @@ var TOO_CLOSE = 5;
 
 let looping = true;
 const SPACE = 32;
+
+// dom elements
+let speed = 15;
+let speedSlider;
+let checkboxes = [];
 
 function setup() {
 	let canvas = createCanvas(400, 400);
@@ -40,14 +48,30 @@ function setup() {
 	snake = new Snake();
 	food = setFoodLocation();
 	
-	// frameRate(10);
+	// dom stuff
+	createP('Snake AI with A* Algorithm in p5.js').style('text-decoration', 'underline');
+	createP('by Ian Moses');
+	
+	let div = createDiv();
+	createP('Speed').parent(div).style('display','inline');
+	speedSlider = createSlider(1, 60, speed).parent(div);
+	checkboxes.push(createCheckbox('View path', false));
+	checkboxes.push(createCheckbox('View path from apple to tail', false));
+	checkboxes.push(createCheckbox('View open/closed set', false));
+	
+	createP('Press SPACE to pause.');
+	
+	frameRate(speed);
 }
 
 function draw() {
+	updateFrameRate();
+	
 	// find a path to the food
 	let path = findPath({
 		end: foodSpot()
 	})
+	saveSets();
 	
 	// there's a path to the apple
 	// make sure there's a path from the food to the tail
@@ -73,6 +97,7 @@ function draw() {
 					end: foodSpot(),
 					walls: pathFoodTail,
 				});
+				saveSets();
 				// if (path.length !== 0) { }
 			}
 		}
@@ -80,10 +105,10 @@ function draw() {
 	
 	// if we can't find the food, try to find the tail
 	if (path.length === 0 || pathFoodTail.length === 0) {
-		restart();
 		path = findPath({
 			end: tailSpot(),
 		});
+		saveSets();
 		if (path.length <= TOO_CLOSE)
 			path = snake.stall();
 	}
@@ -104,17 +129,23 @@ function draw() {
 		// for (let j=0; j<cols; j++)
 			// grid[i][j].show();
 	
-	// for (let i=0; i<closedSet.length; i++)
-		// closedSet[i].show(color(255, 0, 0));
-	
-	// for (let i=0; i<openSet.length; i++)
-		// openSet[i].show(color(0, 255, 0));
+	noStroke();
+	if (checkboxes[2].checked()) {
+		for (let i=0; i<pathClosedSet.length; i++)
+			pathClosedSet[i].show(color(255, 0, 0));
+		
+		for (let i=0; i<pathOpenSet.length; i++)
+			pathOpenSet[i].show(color(0, 255, 0));
+	}
 
-	// for (let i=0; i<path.length; i++)
-		// path[i].show(color(0, 0, 255));
+	if (checkboxes[0].checked())
+		for (let i=0; i<path.length; i++)
+			path[i].show(color(0, 0, 255));
 	
-	// for (let i=0; i<pathFoodTail.length; i++)
-		// pathFoodTail[i].show(color(0, 255, 255));
+	if (checkboxes[1].checked())
+		for (let i=0; i<pathFoodTail.length; i++)
+			pathFoodTail[i].show(color(0, 255, 255));
+
 
 	snake.show();
 	
@@ -232,3 +263,23 @@ const setFoodLocation = () => {
 	return attempt;
 }
 
+function updateFrameRate() {
+	if (speedSlider.value() !== speed) {
+		speed = speedSlider.value();
+		frameRate(speed);
+	}
+}
+
+function saveSets() {
+	// if we're not displaying these, then don't waste time
+	if (!checkboxes[2].checked())
+		return;
+	// console.log('save sets');
+	
+	pathOpenSet = [];
+	pathClosedSet = [];
+	for (let i=0; i<openSet.length; i++)
+		pathOpenSet[i] = openSet[i];
+	for (let i=0; i<closedSet.length; i++)
+		pathClosedSet[i] = closedSet[i];
+}
