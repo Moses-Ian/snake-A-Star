@@ -11,7 +11,6 @@ function Snake() {
 	this.length = 1;
 	this.tail = [new Body(this.x, this.y)];
 	this.previous = {x: 0, y: 0};
-	this.loopCounter = 0;
 	// debug
 	// this.length = 150;
 	// this.tail = new Array(this.length).fill(createVector(this.x, this.y));
@@ -100,7 +99,7 @@ function Snake() {
 	this.eat = food => {
 		if (this.x === food.x && this.y === food.y) {
 			this.length++;
-			this.loopCounter = 0;
+			sizeP.html(`Size: ${this.length}`);
 			return true;
 		}
 		return false;

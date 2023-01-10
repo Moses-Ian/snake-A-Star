@@ -25,6 +25,7 @@ const SPACE = 32;
 let speed = 15;
 let speedSlider;
 let checkboxes = [];
+var sizeP;
 
 function setup() {
 	let canvas = createCanvas(400, 400);
@@ -58,6 +59,7 @@ function setup() {
 	checkboxes.push(createCheckbox('View path', false));
 	checkboxes.push(createCheckbox('View path from apple to tail', false));
 	checkboxes.push(createCheckbox('View open/closed set', false));
+	sizeP = createP(`Size: ${1}`);
 	
 	createP('Press SPACE to pause.');
 	
@@ -126,8 +128,10 @@ function draw() {
 
 	// draw the grid
 	// for (let i=0; i < rows; i++)
-		// for (let j=0; j<cols; j++)
+		// for (let j=0; j<cols; j++) {
 			// grid[i][j].show();
+			// grid[i][j].showArrow();
+		// }
 	
 	noStroke();
 	if (checkboxes[2].checked()) {
