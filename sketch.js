@@ -25,6 +25,7 @@ const SPACE = 32;
 let speed = 15;
 let speedSlider;
 let checkboxes = [];
+var sizeP;
 
 function setup() {
 	let canvas = createCanvas(400, 400);
@@ -49,17 +50,19 @@ function setup() {
 	food = setFoodLocation();
 	
 	// dom stuff
-	createP('Snake AI with A* Algorithm in p5.js').style('text-decoration', 'underline');
-	createP('by Ian Moses');
-	
 	let div = createDiv();
+	createP('Snake AI with A* Algorithm in p5.js').style('text-decoration', 'underline').parent(div);
+	createP('by Ian Moses').parent(div);
+	
+	div.parent('sketch-container');
 	createP('Speed').parent(div).style('display','inline');
 	speedSlider = createSlider(1, 60, speed).parent(div);
-	checkboxes.push(createCheckbox('View path', false));
-	checkboxes.push(createCheckbox('View path from apple to tail', false));
-	checkboxes.push(createCheckbox('View open/closed set', false));
+	checkboxes.push(createCheckbox('View path', false).parent(div));
+	checkboxes.push(createCheckbox('View path from apple to tail', false).parent(div));
+	checkboxes.push(createCheckbox('View open/closed set', false).parent(div));
+	sizeP = createP(`Size: ${1}`).parent(div);
 	
-	createP('Press SPACE to pause.');
+	createP('Press SPACE to pause.').parent(div);
 	
 	frameRate(speed);
 }
@@ -126,8 +129,10 @@ function draw() {
 
 	// draw the grid
 	// for (let i=0; i < rows; i++)
-		// for (let j=0; j<cols; j++)
+		// for (let j=0; j<cols; j++) {
 			// grid[i][j].show();
+			// grid[i][j].showArrow();
+		// }
 	
 	noStroke();
 	if (checkboxes[2].checked()) {
